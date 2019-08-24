@@ -49,19 +49,11 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>actionlib</build_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>turtle_actionlib</build_depend>
-  <build_depend>turtlesim</build_depend>
-  <build_export_depend>actionlib</build_export_depend>
-  <build_export_depend>rospy</build_export_depend>
-  <build_export_depend>turtle_actionlib</build_export_depend>
-  <build_export_depend>turtlesim</build_export_depend>
-  <exec_depend>actionlib</exec_depend>
-  <exec_depend>rospy</exec_depend>
-  <exec_depend>turtle_actionlib</exec_depend>
-  <exec_depend>turtlesim</exec_depend>
 
+  <depend>actionlib</depend>
+  <depend>rospy</depend>
+  <depend>turtle_actionlib</depend>
+  <depend>turtlesim</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
