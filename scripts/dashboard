@@ -3,7 +3,7 @@
 
 import rospy
 
-from turtlesim_dash_tutorial import Dashboard
+from turtlesim_dash_tutorial.dashboard import Dashboard
 
 
 def main():

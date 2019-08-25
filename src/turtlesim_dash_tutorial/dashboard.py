@@ -5,6 +5,7 @@ from __future__ import print_function, division
 
 import os
 import sys
+import time
 import json
 import signal
 
@@ -55,7 +56,7 @@ class Dashboard(object):
     APP_STATUS_ENDPOINT = 'ros_status'
 
     # Actions, Topics, and Services
-    TURTLE_SHAPE_ACTION_NAME = "turtle_shape"
+    TURTLE_SHAPE_ACTION_NAME = 'turtle_shape'
     TURTLE_POSE_TOPIC = '/turtle1/pose'
 
     def __init__(self):
@@ -68,7 +69,9 @@ class Dashboard(object):
         # Create the stop signal handler
         signal.signal(signal.SIGINT, self.stop)
 
-        # TODO: Setup the subscribers, action clients, etc.
+        # Setup the subscribers, action clients, etc.
+        self.shape_client = actionlib.SimpleActionClient(Dashboard.TURTLE_SHAPE_ACTION_NAME, ShapeAction)
+        self._pose_sub = rospy.Subscriber(Dashboard.TURTLE_POSE_TOPIC, Pose, self._on_pose)
 
         # Initialize the application
         self._define_app()
@@ -89,4 +92,13 @@ class Dashboard(object):
         Define the app layout and callbacks here
         """
         # TODO
+        self._app.layout = html.Div(
+            className="container"
+        )
+
+    def _on_pose(self, msg):
+        """
+        The callback for the position of the turtle on
+        :const:`TURTLE_POSE_TOPIC`
+        """
         pass
