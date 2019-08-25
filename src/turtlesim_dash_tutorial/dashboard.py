@@ -121,8 +121,14 @@ class Dashboard(object):
         # String them all together in a single page
         self._app.layout = html.Div(
             [
+                # Hidden button for JS polling
+                html.Button(id='refresh-status', n_clicks=0, style={ 'display': 'none' }),
+
+                # The section showing the action status
                 html.Div(html.H3('Pose History', className='col'), className='row'),
                 pose_graph_layout,
+
+                # The interval component to update the plots
                 dcc.Interval(id='interval-component',
                              n_intervals=0,
                              interval=(Dashboard.POSE_UPDATE_INTERVAL * 1000)),
@@ -135,6 +141,13 @@ class Dashboard(object):
             dash.dependencies.Output('pose', 'figure'),
             [dash.dependencies.Input('interval-component', 'n_intervals')]
         )(self._define_pose_history_callback())
+
+        # Add the flask API endpoints
+        self._flask_server.add_url_rule(
+            Dashboard.APP_STATUS_URL,
+            Dashboard.APP_STATUS_ENDPOINT,
+            self._flask_status_endpoint
+        )
 
     def _define_pose_history_callback(self):
         """
@@ -188,3 +201,8 @@ class Dashboard(object):
             msg.linear_velocity,
             msg.angular_velocity,
         ]
+
+    def _flask_status_endpoint(self):
+        return jsonify({
+            'server_status': self._server_status,
+        })
