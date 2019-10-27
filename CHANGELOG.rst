@@ -2,8 +2,8 @@
 Changelog for package turtlesim_dash_tutorial
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2019-10-26)
+------------------
 * Add a travis build
 * Better documentation
 * Feedback the results from the server
