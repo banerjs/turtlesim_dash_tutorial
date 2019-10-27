@@ -2,10 +2,16 @@
 # Build from travis translated into a shell script
 set -ex
 
+export DEBIAN_FRONTEND=noninteractive
+
 # Add a ROS user if this is docker and you logged in as root
 if [ "$(whoami)" == "root" ]
 then
-    apt-get update -qq && apt-get install -yq sudo
+    apt-get update -qq && apt-get install -yqq sudo lsb-release gnupg gnupg1 gnupg2
+    ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime
+    apt-get install -y tzdata
+    dpkg-reconfigure --frontend noninteractive tzdata
+
     TEST_DIR="/test"
     mkdir $TEST_DIR
     cp -r * $TEST_DIR
