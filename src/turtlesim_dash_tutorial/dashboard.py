@@ -66,11 +66,14 @@ class Dashboard(object):
     APP_STATUS_ENDPOINT = 'ros_status'
 
     # Actions, Topics, and Services
+    # Note that although the values are hard-coded for now, these can be set via
+    # service or ROS params if need be (a trivial update)
     TURTLE_SHAPE_ACTION_NAME = 'turtle_shape'
     TURTLE_POSE_TOPIC = '/turtle1/pose'
 
     # Constants that determine the behaviour of the dashboard
-    # Pose is published at ~62 Hz; so we'll see ~30 sec of history
+    # Pose is published at ~62 Hz; so we'll see ~30 sec of history. Note that
+    # these parameters could be set through ROS parameters or services too!
     POSE_UPDATE_INTERVAL = 5
     POSE_MAX_TIMESTEPS = 2000
     POSE_ATTRIBUTES = ['x', 'y', 'theta', 'linear_velocity', 'angular_velocity']
