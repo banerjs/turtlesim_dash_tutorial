@@ -32,6 +32,11 @@ import dash_html_components as html
 from flask import jsonify
 
 
+# Helper functions and constants (should ideally be in a utils module)
+
+GOAL_STATUS_TO_TXT = { getattr(GoalStatus, x): x for x in dir(GoalStatus) if x.isupper() }
+
+
 # The app definition
 
 APP = dash.Dash(
@@ -69,6 +74,9 @@ class Dashboard(object):
     POSE_UPDATE_INTERVAL = 5
     POSE_MAX_TIMESTEPS = 2000
     POSE_ATTRIBUTES = ['x', 'y', 'theta', 'linear_velocity', 'angular_velocity']
+
+    # Constants for pertinent output fields
+    SERVER_STATUS_OUTPUT_FORMAT = "Shape Server Status: {status}"
 
     def __init__(self):
         global APP
@@ -128,9 +136,15 @@ class Dashboard(object):
             [
                 dcc.Input(id="shape-edges", type='number', placeholder='Num Edges', className='col mx-2'),
                 dcc.Input(id="shape-radius", type='number', placeholder='Radius', className='col mx-2'),
-                html.Button("Trace", id='trace-button', n_clicks=0, className='btn btn-large btn-primary col-3'),
+                html.Button("Trace Shape", id='trace-button', n_clicks=0, className='btn btn-large btn-primary col-3'),
             ],
             className='row'
+        )
+
+        # Then the section that will display the status of the shape server
+        server_status_layout = html.Div(
+            dcc.Markdown(id='server-status', className='col'),
+            className='row my-2'
         )
 
         # String them all together in a single page
@@ -140,11 +154,12 @@ class Dashboard(object):
                 html.Button(id='refresh-status', n_clicks=0, style={ 'display': 'none' }),
 
                 # The params for tracing the shape
-                html.Div(html.H3('Shape Tracing Params', className='col'), className='row mt-4'),
+                html.Div(html.H3('Shape Tracing:', className='col'), className='row mt-4'),
                 shape_params_layout,
+                server_status_layout,
 
                 # The section showing the action status
-                html.Div(html.H3('Pose History', className='col'), className='row my-2'),
+                html.Div(html.H3('Pose History:', className='col'), className='row my-2'),
                 pose_graph_layout,
 
                 # The interval component to update the plots
@@ -170,6 +185,12 @@ class Dashboard(object):
              dash.dependencies.State('shape-radius', 'value')]
         )(self._define_trace_shape_callback())
 
+        # Define a callback to show the status of the server
+        self._app.callback(
+            dash.dependencies.Output('server-status', 'children'),
+            [dash.dependencies.Input('refresh-status', 'n_clicks')]
+        )(self._define_server_status_callback())
+
         # Add the flask API endpoints
         self._flask_server.add_url_rule(
             Dashboard.APP_STATUS_URL,
@@ -177,15 +198,28 @@ class Dashboard(object):
             self._flask_status_endpoint
         )
 
+    def _define_server_status_callback(self):
+        """
+        Define a callback to populate the server status display when the status
+        refresh button (hidden) is pressed
+        """
+        def server_status_callback(n_clicks):
+            status = GOAL_STATUS_TO_TXT.get(self._server_status)
+            return Dashboard.SERVER_STATUS_OUTPUT_FORMAT.format(**locals())
+
+        return server_status_callback
+
     def _define_trace_shape_callback(self):
         """
         Define a callback that will be invoked every time the 'Trace' button is
         clicked.
         """
         def trace_shape_callback(n_clicks, num_edges, radius):
-            # Coerce the input data into formats that we can use. It is likely
-            # that this callback will be invoked with invalid values when the
-            # page is first loaded
+            # Ignore the 'click' event when the component is created
+            if n_clicks is None or n_clicks == 0:
+                return False
+
+            # Coerce the input data into formats that we can use
             try:
                 num_edges = int(num_edges)
                 radius = float(radius)
