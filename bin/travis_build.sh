@@ -5,6 +5,7 @@ set -ex
 # Add a ROS user if this is docker and you logged in as root
 if [ "$(whoami)" == "root" ]
 then
+    apt-get update -qq && apt-get install -yq sudo
     TEST_DIR="/test"
     mkdir $TEST_DIR
     cp -r * $TEST_DIR
@@ -37,7 +38,6 @@ source /opt/ros/$ROS_DISTRO/setup.bash
 # Prepare rosdep to install dependencies.
 sudo rosdep init
 rosdep update
-sudo apt-get install -y libeigen3-dev
 
 # Create and install the catkin workspace
 mkdir -p ~/catkin_ws/src
