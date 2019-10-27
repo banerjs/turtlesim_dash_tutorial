@@ -1,5 +1,7 @@
 # A Dash of ROS turtlesim
 
+[![Build Status](https://travis-ci.org/banerjs/turtlesim_dash_tutorial.svg?branch=melodic-devel)](https://travis-ci.org/banerjs/turtlesim_dash_tutorial)
+
 This package is designed to provide a quick and dirty tutorial on how to quickly create a Web UI for a ROS environment with [Dash](https://plot.ly/dash). As backbone for this tutorial, we'll use ROS's [turtle_actionlib](http://wiki.ros.org/turtle_actionlib).
 
 
