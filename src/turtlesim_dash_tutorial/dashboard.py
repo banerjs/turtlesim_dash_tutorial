@@ -8,6 +8,7 @@ import sys
 import time
 import json
 import signal
+import traceback
 
 import numpy as np
 
@@ -116,7 +117,21 @@ class Dashboard(object):
         Define the app layout and callbacks here
         """
         # Define each component of the page
+
+        # First the graph element that will plot the pose and velocity of the
+        # robot
         pose_graph_layout = html.Div(dcc.Graph(id='pose', style={ 'width': '100%' }), className='row')
+
+        # Then the section that will update the parameters for the shape that
+        # the turtle will trace in the turtle sim
+        shape_params_layout = html.Div(
+            [
+                dcc.Input(id="shape-edges", type='number', placeholder='Num Edges', className='col mx-2'),
+                dcc.Input(id="shape-radius", type='number', placeholder='Radius', className='col mx-2'),
+                html.Button("Trace", id='trace-button', n_clicks=0, className='btn btn-large btn-primary col-3'),
+            ],
+            className='row'
+        )
 
         # String them all together in a single page
         self._app.layout = html.Div(
@@ -124,8 +139,12 @@ class Dashboard(object):
                 # Hidden button for JS polling
                 html.Button(id='refresh-status', n_clicks=0, style={ 'display': 'none' }),
 
+                # The params for tracing the shape
+                html.Div(html.H3('Shape Tracing Params', className='col'), className='row mt-4'),
+                shape_params_layout,
+
                 # The section showing the action status
-                html.Div(html.H3('Pose History', className='col'), className='row'),
+                html.Div(html.H3('Pose History', className='col'), className='row my-2'),
                 pose_graph_layout,
 
                 # The interval component to update the plots
@@ -142,12 +161,54 @@ class Dashboard(object):
             [dash.dependencies.Input('interval-component', 'n_intervals')]
         )(self._define_pose_history_callback())
 
+        # Define a callback to send the goal to the server when the 'Trace'
+        # button is clicked. Wait until the client is done executing
+        self._app.callback(
+            dash.dependencies.Output('trace-button', 'autoFocus'),
+            [dash.dependencies.Input('trace-button', 'n_clicks')],
+            [dash.dependencies.State('shape-edges', 'value'),
+             dash.dependencies.State('shape-radius', 'value')]
+        )(self._define_trace_shape_callback())
+
         # Add the flask API endpoints
         self._flask_server.add_url_rule(
             Dashboard.APP_STATUS_URL,
             Dashboard.APP_STATUS_ENDPOINT,
             self._flask_status_endpoint
         )
+
+    def _define_trace_shape_callback(self):
+        """
+        Define a callback that will be invoked every time the 'Trace' button is
+        clicked.
+        """
+        def trace_shape_callback(n_clicks, num_edges, radius):
+            # Coerce the input data into formats that we can use. It is likely
+            # that this callback will be invoked with invalid values when the
+            # page is first loaded
+            try:
+                num_edges = int(num_edges)
+                radius = float(radius)
+            except Exception as e:
+                rospy.logerr("Error parsing params - {}\n{}".format(e, traceback.format_exc()))
+                return False
+
+            # Create the goal and send it to the action server
+            goal = ShapeGoal(edges=num_edges, radius=radius)
+            self._shape_client.send_goal(goal)
+            self._server_status = GoalStatus.ACTIVE
+
+            # Wait for a result
+            self._shape_client.wait_for_result()
+
+            # Finally, update the status, log the result, and return true
+            self._server_status = self._shape_client.get_state()
+            result = self._shape_client.get_result()
+            rospy.loginfo("ShapeServer: Interior Angle - {result.interior_angle}, Apothem - {result.apothem}".format(**locals()))
+
+            return True
+
+        return trace_shape_callback
 
     def _define_pose_history_callback(self):
         """
