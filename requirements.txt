@@ -6,7 +6,7 @@ dash-table==3.7.0
 Flask==1.0.3
 Flask-Caching==1.7.2
 Flask-Compress==1.4.0
-numpy==1.16.4
+numpy==1.22.0
 plotly==3.10.0
 requests==2.22.0
 ruamel.yaml==0.15.96
