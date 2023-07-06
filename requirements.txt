@@ -11,5 +11,5 @@ plotly==3.10.0
 requests==2.22.0
 ruamel.yaml==0.15.96
 scikit-learn==0.20.3
-scipy==1.2.1
+scipy==1.10.0
 virtualenv==16.6.0
